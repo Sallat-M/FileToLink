@@ -2,14 +2,13 @@ from pyrogram import filters
 from pyrogram.types import (Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, User)
 from pyrogram.errors.exceptions import ButtonDataInvalid
 
-from FileToLink import bot, Config
+from FileToLink import bot, Config, Strings
 
 
 async def archive_msg(msg: Message):
-    buttons = [[InlineKeyboardButton("🚫", callback_data=f'delete-file')]]
+    buttons = [[InlineKeyboardButton("🚫", callback_data='delete-file')]]
 
     forward = msg.forward_from or msg.forward_from_chat
-
     if forward:
         if forward.username:
             buttons[0].append(InlineKeyboardButton("↪", url=f'https://t.me/{forward.username}'))
@@ -50,5 +49,4 @@ async def from_info(_, cb: CallbackQuery):
 
 @bot.on_callback_query(filters.create(lambda _, __, cb: cb.data == 'time-out'))
 async def time_out(_, cb: CallbackQuery):
-    await cb.answer("The bot can't delete messages older than 48 hours,"
-                    " you can delete this message manually", show_alert=True)
+    await cb.answer(Strings.delete_forbidden, show_alert=True)

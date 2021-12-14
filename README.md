@@ -24,7 +24,7 @@ Press the below button to deploy to Heroku
 
 `ARCHIVE_CHANNEL_ID` : Create a new channel (private/public), post anything in the channel, forward the post to @message_ids_bot, now copy and paste chat_forward in this field. 
 
-`Session_String` : [Not Required] Use session_generator.py to generate Pyrogram Session String, If you don't add it the bot will create a new session every Restarting.
+`Session_String` : [Optional] Use session_generator.py to generate Pyrogram Session String, If you don't add it the bot will create a new session every Restarting.
 
 
 ## How to use the bot

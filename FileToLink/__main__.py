@@ -38,14 +38,13 @@ async def main(_, msg: Message):
         # Else if the file not exist on the server, Send the message to Archive Channel and Create empty file
         gen_msg = await bot.send_message(msg.chat.id, Strings.generating_link,
                                          reply_to_message_id=msg.message_id)
-        worker = Worker(msg)
-        archived_msg = await archive_msg(msg)
 
-        archive_id = archived_msg.message_id
-        worker.set_link(archive_id)
-        AllWorkers.add(worker, archive_id)
-        if archive_id in NotFound:
-            NotFound.remove(archive_id)
+        archived_msg = await archive_msg(msg)
+        worker = Worker(archived_msg)
+        AllWorkers.add(worker)
+
+        if archived_msg.message_id in NotFound:
+            NotFound.remove(archived_msg.message_id)
 
         await worker.create_file()  # Create empty file
 
@@ -59,18 +58,14 @@ async def main(_, msg: Message):
     if worker.stream:
         st_link = f'{dl_link}?st=1'  # Stream Link
         buttons.append([InlineKeyboardButton(Strings.st_link, url=st_link)])
-
+    buttons.append([InlineKeyboardButton(Strings.update_link, callback_data=f'fast|{worker.archive_id}')])
     reply_markup = InlineKeyboardMarkup(buttons)
 
     if gen_msg is not None:
-        await bot.edit_message_text(msg.chat.id, gen_msg.message_id, text,
-                                    reply_markup=reply_markup,
-                                    disable_web_page_preview=True)
+        await gen_msg.edit_text(text, reply_markup=reply_markup, disable_web_page_preview=True)
     else:
-        await bot.send_message(msg.chat.id, text,
-                               reply_to_message_id=msg.message_id,
-                               reply_markup=reply_markup,
-                               disable_web_page_preview=True)
+        await bot.send_message(msg.chat.id, text, reply_to_message_id=msg.message_id,
+                               reply_markup=reply_markup, disable_web_page_preview=True)
 
 
 async def wait(chat_id: int):

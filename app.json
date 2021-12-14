@@ -32,7 +32,7 @@
             "value": "Hello, Send me any file to get download and Stream links"
         },
         "Session_String": {
-            "description": "[Not Required] Pyrogram Session String, use session_generator.py to generate it, If you don't add it the bot will create a new session every Restarting.",
+            "description": "[Optional] Pyrogram Session String, use session_generator.py to generate it, If you don't add it the bot will create a new session every Restarting.",
             "required": false
         }
     },

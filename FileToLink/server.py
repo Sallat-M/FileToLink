@@ -68,6 +68,7 @@ async def download(archive_id: int):
         try:
             worker: Worker = await create_worker(archive_id)
         except (ValueError, MessageIdInvalid):
+            # This Message not found in Archive Channel
             NotFound.append(archive_id)
             return abort(404)  # Not Found
 

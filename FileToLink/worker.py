@@ -4,22 +4,26 @@ import aiofiles
 import os
 
 from pyrogram import filters
-from pyrogram.errors import MessageDeleteForbidden
+from pyrogram.errors import MessageDeleteForbidden, MessageIdInvalid
 from pyrogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 
-from FileToLink import bot, Config
+from FileToLink import bot, Config, Strings
 
 
 class Worker:
     def __init__(self, msg: Message):
+        """
+        :param msg: Message from Archive Channel
+        """
         if msg.empty:
             raise ValueError
         self.msg = msg
+        self.archive_id = msg.message_id
         self.media = (msg.video or msg.document or msg.photo or msg.audio or
                       msg.voice or msg.video_note or msg.sticker or msg.animation)
         self.size = self.media.file_size
         self.id = self.media.file_unique_id
-        self.link = None
+        self.link = f'{Config.Link_Root}dl/{self.archive_id}'
         self.current_dl: int = 0  # Number of currently downloading parts
 
         if hasattr(self.media, 'mime_type') and self.media.mime_type not in (None, ''):
@@ -53,10 +57,8 @@ class Worker:
         self.parts = [False for _ in
                       range(int(self.size / Config.Part_size) + (1 if self.size % Config.Part_size else 0))]
         self.done = False  # If All parts are downloaded
+        self.fast = False  # If User update to Fast Link
         AllWorkers.add(self)
-
-    def set_link(self, archive_id: int):
-        self.link = f'{Config.Link_Root}dl/{archive_id}'
 
     async def create_file(self):
         """
@@ -151,13 +153,12 @@ class Worker:
 
 class Workers:
     def __init__(self):
-        """
-        Store Workers by file_unique_id and by archive_id
-        """
+        """ Store Workers by file_unique_id and by archive_id """
         self.by_file_id = {}
         self.by_archive_id = {}
 
     def get(self, archive_id: int = None, file_id: str = None):
+        """Get the worker by archive_id or by file_id"""
         if archive_id is not None and archive_id in self.by_archive_id:
             return self.by_archive_id[archive_id]
         elif file_id is not None and file_id in self.by_file_id:
@@ -165,22 +166,25 @@ class Workers:
         else:
             return None
 
-    def add(self, worker, archive_id: int = None):
+    def add(self, worker):
+        """Add the worker to <self.by_file_id> and <self.by_archive_id>"""
         if worker.id not in self.by_file_id:
             self.by_file_id[worker.id] = worker
-        if archive_id is not None and archive_id not in self.by_archive_id:
-            self.by_archive_id[archive_id] = worker
+        if worker.msg.message_id not in self.by_archive_id:
+            self.by_archive_id[worker.archive_id] = worker
 
-    def remove(self, archive_id: int = None, file_id: str = None):
-        if archive_id is not None and archive_id in self.by_archive_id:
-            del self.by_file_id[self.by_archive_id[archive_id].id]
+    def remove(self, archive_id: int):
+        """Remove the worker from <self.by_file_id> and <self.by_archive_id>"""
+        if archive_id in self.by_archive_id:
+            file_id = self.by_archive_id[archive_id].id
+            if file_id in self.by_file_id:
+                del self.by_file_id[file_id]
             del self.by_archive_id[archive_id]
-        elif file_id is not None and file_id in self.by_file_id:
-            del self.by_file_id[file_id]
 
 
 AllWorkers = Workers()
 NotFound = []  # Store IDs of messages that not exist in Archive Channel
+FastProcesses = {}  # {User_ID: Number_Of_Link_Updating}
 
 
 async def create_worker(archive_msg_id):
@@ -190,9 +194,70 @@ async def create_worker(archive_msg_id):
     if msg.empty or not msg.media:
         raise ValueError
     worker = Worker(msg)
-    AllWorkers.add(worker, archive_id=archive_msg_id)
+    AllWorkers.add(worker)
     await worker.create_file()
     return worker
+
+
+@bot.on_callback_query(filters.create(lambda _, __, cb: cb.data.split('|')[0] == 'fast'))
+async def update_to_fast_link(_, cb: CallbackQuery):
+    msg = cb.message
+    user_id = msg.chat.id
+    if user_id in FastProcesses and FastProcesses[user_id] >= Config.Max_Fast_Processes:
+        await cb.answer(Strings.update_limited, show_alert=True)
+        return
+
+    archive_id = int(cb.data.split('|')[1])
+    worker: Worker = AllWorkers.get(archive_id=archive_id)
+    if worker is None:
+        try:
+            worker = await create_worker(archive_id)
+        except (ValueError, MessageIdInvalid):
+            await cb.answer(Strings.file_not_found, show_alert=True)
+            return
+    if worker.fast:
+        await cb.answer(Strings.already_updated, show_alert=True)
+        return
+
+    buttons = cb.message.reply_markup.inline_keyboard
+    update_button_row = -1  # Last Row
+    old_data = buttons[update_button_row][0].callback_data
+    buttons[update_button_row][0].text = Strings.wait_update
+    new_data = f"fast-prog|{archive_id}"
+    buttons[update_button_row][0].callback_data = new_data
+
+    await cb.answer(Strings.wait)
+    await cb.message.edit_reply_markup(InlineKeyboardMarkup(buttons))
+    progress = await msg.reply_text(
+        Strings.wait_update, reply_to_message_id=msg.message_id,
+        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(Strings.progress, callback_data=new_data)]]))
+
+    if user_id in FastProcesses:
+        FastProcesses[user_id] += 1
+    else:
+        FastProcesses[user_id] = 1
+
+    await worker.dl_all()
+    worker.fast = True
+
+    FastProcesses[user_id] -= 1
+
+    buttons[update_button_row][0].text = Strings.re_update_link
+    buttons[update_button_row][0].callback_data = old_data
+    await msg.edit_reply_markup(InlineKeyboardMarkup(buttons))
+    await progress.edit_text(Strings.fast)
+
+
+@bot.on_callback_query(filters.create(lambda _, __, cb: cb.data.split('|')[0] == 'fast-prog'))
+async def fast_progress(_, cb: CallbackQuery):
+    archive_id = int(cb.data.split('|')[1])
+    worker = AllWorkers.get(archive_id=archive_id)
+    if worker is None:
+        await cb.answer(Strings.file_not_found, show_alert=True)
+        return
+    downloaded = len([i for i in worker.parts if i])
+    total = len(worker.parts)
+    await cb.answer(progress_bar(downloaded, total), show_alert=True)
 
 
 @bot.on_callback_query(filters.create(lambda _, __, cb: cb.data == 'delete-file'))
@@ -202,5 +267,11 @@ async def delete_file_handler(_, cb: CallbackQuery):
     try:
         await msg.delete()
     except MessageDeleteForbidden:
-        button = InlineKeyboardButton("⚠️You can delete it", callback_data='time-out')
+        button = InlineKeyboardButton(Strings.delete_manually_button, callback_data='time-out')
         await msg.edit_reply_markup(InlineKeyboardMarkup([[button]]))
+
+
+def progress_bar(current, total, length=16, finished='█', unfinished='░'):
+    rate = current / total
+    finished_len = int(length * rate) if rate <= 1 else length
+    return f'{finished * finished_len}{unfinished * (length - finished_len)} {int(rate * 100)}%'
