@@ -14,6 +14,7 @@ from FileToLink import bot, Config, Strings
 from FileToLink.archive import archive_msg
 from FileToLink.server import app
 from FileToLink.worker import Worker, AllWorkers, NotFound
+from FileToLink.utils import participant
 
 
 Last_Time = {}
@@ -22,6 +23,10 @@ Last_Time = {}
 @bot.on_message(filters.media & filters.private & filters.incoming)
 async def main(_, msg: Message):
     await wait(msg.chat.id)
+
+    if not await participant(msg.chat.id):
+        return
+
     media = (msg.video or msg.document or msg.photo or msg.audio or
              msg.voice or msg.video_note or msg.sticker or msg.animation)
 
@@ -82,7 +87,9 @@ async def wait(chat_id: int):
 
 @bot.on_message(filters.command("start"))
 async def start(_, msg: Message):
-    buttons = [[InlineKeyboardButton(Strings.join_channel, url=f'https://t.me/{Config.Bot_Channel}')]]
+    buttons = [[InlineKeyboardButton(Strings.dev_channel, url=f'https://t.me/{Config.Dev_Channel}')]]
+    if Config.Bot_Channel:
+        buttons.append([InlineKeyboardButton(Strings.bot_channel, url=f'https://t.me/{Config.Bot_Channel}')])
     await msg.reply_text(Strings.start, reply_markup=InlineKeyboardMarkup(buttons))
 
 

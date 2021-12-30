@@ -9,6 +9,7 @@ from pyrogram.errors import MessageDeleteForbidden, MessageIdInvalid
 from pyrogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 
 from FileToLink import bot, Config, Strings
+from FileToLink.utils import progress_bar
 
 
 class Worker:
@@ -271,9 +272,3 @@ async def delete_file_handler(_, cb: CallbackQuery):
     except MessageDeleteForbidden:
         button = InlineKeyboardButton(Strings.delete_manually_button, callback_data='time-out')
         await msg.edit_reply_markup(InlineKeyboardMarkup([[button]]))
-
-
-def progress_bar(current, total, length=16, finished='█', unfinished='░'):
-    rate = current / total
-    finished_len = int(length * rate) if rate <= 1 else length
-    return f'{finished * finished_len}{unfinished * (length - finished_len)} {int(rate * 100)}%'

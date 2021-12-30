@@ -11,7 +11,9 @@
 
 Press the below button to deploy to Heroku
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/Sallat-M/FileToLink)
+:warning: **Don't deploy the main repository, because it has been blocked by Heroku, Instead make a fork and deploy it**
+
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
 
 ### Variables
@@ -23,6 +25,8 @@ Press the below button to deploy to Heroku
 `BOT_TOKEN` : Get the bot token from [@BotFather](https://telegram.dog/BotFather)
 
 `ARCHIVE_CHANNEL_ID` : Create a new channel (private/public), post anything in the channel, forward the post to @message_ids_bot, now copy and paste chat_forward in this field. 
+
+`Bot_Channel_UserName` : [Optional] The UserName of any channel to force users to join it before using the bot, Make sure to make the bot admin in this channel
 
 `Session_String` : [Optional] Use session_generator.py to generate Pyrogram Session String, If you don't add it the bot will create a new session every Restarting.
 

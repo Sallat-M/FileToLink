@@ -34,6 +34,10 @@
         "Session_String": {
             "description": "[Optional] Pyrogram Session String, use session_generator.py to generate it, If you don't add it the bot will create a new session every Restarting.",
             "required": false
+        },
+        "Bot_Channel_UserName": {
+            "description": "[Optional] The UserName of any channel to force users to join it before using the bot, Make sure to make the bot admin in this channel",
+            "required": false
         }
     },
     "stack": "heroku-20",
