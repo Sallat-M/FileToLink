@@ -13,10 +13,10 @@ class Config:
     Archive_Channel_ID = int(os.environ.get("ARCHIVE_CHANNEL_ID"))
     Start_Message = os.environ.get("Start_Message")
     Bot_Channel = os.environ.get("Bot_Channel_UserName")
-    if Bot_Channel == "":
-        Bot_Channel = None
-    elif Bot_Channel.startswith("@"):
+    if Bot_Channel.startswith("@"):
         Bot_Channel = Bot_Channel[1:]
+    elif Bot_Channel == "":
+        Bot_Channel = None
 
     Link_Root = f"https://{App_Name}.herokuapp.com/"
     Download_Folder = "Files"
