@@ -7,13 +7,6 @@
 </h3>
 
 
-## Deploy the Bot
-
-Press the below button to deploy to Heroku
-
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
-
-
 ### Variables
 
 `API_ID` : Goto [my.telegram.org](https://my.telegram.org) to obtain this.
