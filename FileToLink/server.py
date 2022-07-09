@@ -27,7 +27,7 @@ class FileBody(Fb):
         if current >= self.end:
             raise StopAsyncIteration()
         read_size = min(self.buffer_size, self.end - current)
-        if (not self.worker.done and current >= self.current_part * Config.Part_size) or current < self.last_read_byte:
+        if current >= self.current_part * Config.Part_size:
             self.current_part = await self.check_dl(current) + 1
             self.last_read_byte = current
         chunk = await self.file.read(read_size)
@@ -59,7 +59,7 @@ app.response_class.file_body_class = FileBody
 
 @app.route('/')
 async def root():
-    return redirect(f"https://t.me/{Config.Bot_UserName}")
+    return redirect(f"https://t.me/shadow_bots")
 
 
 @app.route('/dl/<int:archive_id>/<name>')
@@ -80,10 +80,7 @@ async def download(archive_id: int, name: str):
     response = await send_file(worker.path, mimetype=worker.mime_type,
                                as_attachment=not bool(request.args.get('st')),
                                attachment_filename=worker.name)
-    try:
-        if request.range is not None and len(request.range.ranges) > 0:
-            await response.make_conditional(request.range, Config.Part_size if not worker.done else None)
-    except AssertionError:
-        pass  # Bad Range Provided
-    response.timeout = None
+    if request.range is not None and len(request.range.ranges) > 0:
+        await response.make_conditional(request.range, Config.Part_size)
+
     return response
