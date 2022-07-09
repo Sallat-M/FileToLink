@@ -22,9 +22,9 @@ class Config:
     Download_Folder = "Files"
     Dev_Channel = "shadow_bots"
     Bot_UserName = None  # The bot will set it after starting
-    Part_size = 10 * 1024 * 1024  # (10MB) For Pyrogram
+    Part_size = 1024 * 1024  # (1MB) For Pyrogram
     Buffer_Size = 512 * 1024  # For Quart
-    Pre_Dl = 3  # How many parts to download from telegram before client request them
+    Pre_Dl = 1  # How many parts to download from telegram before client request them
     Separate_Time = 4  # (seconds)  wait time between messages if user send more than one
     Sleep_Threshold = 60  # (Seconds) sleep threshold for flood wait exceptions
     Max_Fast_Processes = 1  # How many links user can update them to fast links at the same time
