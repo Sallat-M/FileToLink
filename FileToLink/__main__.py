@@ -99,11 +99,11 @@ async def keep_awake(sleep_time=20 * 60):
     So this function will send request every specific time.
     The time should be less than 30 minutes.
     """
-    while True:
-        async with ClientSession() as session:
-            async with session.get(Config.Link_Root + "keep_awake"):
-                pass
-        await sleep(sleep_time)
+    await sleep(sleep_time)
+    async with ClientSession() as session:
+        async with session.get(Config.Link_Root + "keep_awake"):
+            pass
+        
 
 
 async def startup():
@@ -120,5 +120,5 @@ if __name__ == '__main__':
     app_config = HypercornConfig()
     app_config._bind = [f'0.0.0.0:{Config.Port}']
     bot.loop.create_task(serve(app, app_config, shutdown_trigger=lambda: Future()))
-    bot.loop.create_task(keep_awake())
+    bot.loop.run_until_complete(keep_awake())
     idle()
