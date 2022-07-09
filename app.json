@@ -1,0 +1,50 @@
+{
+    "name": "File To Link Bot",
+    "logo": "https://telegra.ph//file/03226efb5763203163922.jpg",
+    "description": "This bot will give permanent Download and Stream links for telegram files",
+    "keywords": [
+        "stream",
+        "download",
+        "telegram",
+        "FileToLink",
+        "bot",
+        "link"
+    ],
+    "repository": "https://github.com/Sallat-M/FileToLink",
+    "env": {
+        "API_ID": {
+            "description": "Get it from  https://my.telegram.org"
+        },
+        "API_HASH": {
+            "description": "Get it from  https://my.telegram.org"
+        },
+        "BOT_TOKEN": {
+            "description": "Get it from @BotFather"
+        },
+        "APP_NAME": {
+            "description": "Copy Paste app name that you type it above"
+        },
+        "ARCHIVE_CHANNEL_ID": {
+            "description": "Create a new channel, post anything in the channel, forward the post to @message_ids_bot, now copy paste chat_forward in this field"
+        },
+        "Start_Message": {
+            "description": "The bot will send this message when user send /start",
+            "value": "Hello, Send me any file to get download and Stream links"
+        },
+        "Session_String": {
+            "description": "[Optional] Pyrogram Session String, use session_generator.py to generate it, If you don't add it the bot will create a new session every Restarting.",
+            "required": false
+        },
+        "Bot_Channel_UserName": {
+            "description": "[Optional] The UserName of any channel to force users to join it before using the bot, Make sure to make the bot admin in this channel",
+            "required": false
+        }
+    },
+    "stack": "heroku-20",
+    "formation": {
+        "web": {
+            "quantity": 1,
+            "size": "free"
+        }
+    }
+} 
