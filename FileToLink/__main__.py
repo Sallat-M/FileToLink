@@ -87,7 +87,7 @@ async def wait(chat_id: int):
 
 @bot.on_message(filters.command("start"))
 async def start(_, msg: Message):
-    buttons = [[InlineKeyboardButton(Strings.dev_channel, url=f'https://t.me/{Config.Dev_Channel}')]]
+    buttons = [[InlineKeyboardButton(Strings.dev_channel, url=f'https://t.me/shadow_bots')]]
     if Config.Bot_Channel:
         buttons.append([InlineKeyboardButton(Strings.bot_channel, url=f'https://t.me/{Config.Bot_Channel}')])
     await msg.reply_text(Strings.start, reply_markup=InlineKeyboardMarkup(buttons))
