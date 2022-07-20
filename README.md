@@ -2,9 +2,9 @@
 
 <hr>
 
-<h1 align="center">The Bot is Dead, don't deploy it</h1>
+<h1 align="center">:warning: The Bot is Dead. Don't deploy it</h1>
 
-<hr>
+
 
 <h3 align='center'>
     This bot will give you permanent Stream and Download links for Telegram files
